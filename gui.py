@@ -4,7 +4,7 @@ import numpy as np
 import cv2 as cv
 import torch
 from PyQt5.QtCore import QMimeData, QPointF, Qt, QObject, pyqtSlot, QSize, QAbstractListModel, QRectF, QPoint, QRect, \
-    QTimer
+    QTimer, pyqtSignal, QRunnable, QThreadPool
 from PyQt5.QtGui import QImage, QPixmap, QDrag, QPainter, QStandardItemModel, QIcon, QPen, QColor, QCursor
 from PyQt5.QtWidgets import (QApplication, QDialog, QFileDialog, QGridLayout,
                              QLabel, QPushButton, QWidget, QVBoxLayout, QListWidget, QAbstractItemView, QHBoxLayout,
@@ -21,8 +21,8 @@ from torch.optim import Adam
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision.models import resnet18, resnet34, resnet50, mobilenet_v2
 import random
-
-
+from multiprocessing import Process, Queue
+import traceback
 
 class DoodleDataset(Dataset):
     def __init__(self, csv_file, root_dir, mode='train', nrows=1000, skiprows=None,
@@ -71,6 +71,21 @@ class DoodleDataset(Dataset):
         else:
             return (sample[None] / 255).astype('float32')
 
+# ref: https://medium.com/floatflower-me/qt%E4%B8%ADqthreadpool%E7%B7%9A%E7%A8%8B%E6%B1%A0%E5%AF%A6%E7%8F%BE%E8%88%87%E5%8E%9F%E5%A7%8B%E7%A2%BC%E8%A7%A3%E6%9E%90-5d1a67c1480b
+# ref: https://stackoverflow.com/questions/47560399/run-function-in-the-background-and-update-ui
+class ProcessRunnable(QRunnable):
+    def __init__(self, target, args):
+        QRunnable.__init__(self)
+        self.t = target
+        self.args = args
+
+    def run(self):
+        self.t(*self.args)
+
+    def start(self):
+        QThreadPool.globalInstance().start(self)
+
+
 
 class DrawBoard(QLabel):
     def __init__(self):
@@ -106,7 +121,8 @@ class DrawBoard(QLabel):
 
         self.create_label()
         self.init_model()
-        self.compute()
+        # self.compute()
+
 
 
 
@@ -238,7 +254,6 @@ class DrawBoard(QLabel):
         return img
 
     def compute(self):
-        # print(123)
         qimg = self.imageDraw
         # print(456)
         qimg.save('images/tmp.png', 'png')
@@ -304,33 +319,40 @@ class DrawBoard(QLabel):
         data = pd.DataFrame([[9000003627287624, 'UA', stks.__str__()]], columns=['key_id', 'countrycode', 'drawing'])
         data.to_csv('dataset/test_simplified/tmp.csv')
 
-        img = self.draw(stks)
-        cv.imwrite('images/sim_tmp.png', img)
+        # img = self.draw(stks)
+        # cv.imwrite('images/sim_tmp.png', img)
 
 
 
         # dataset/test_simplified/tmp.csv
 
-        # testset = DoodleDataset('tmp.csv', 'dataset/test_simplified', mode='test', nrows=None,
-        #                         size=self.image_size)
-        # testloader = DataLoader(testset, batch_size=1)
-        #
-        # labels = np.empty((0, 3))
-        # for img in tqdm.tqdm(testloader):
-        #     img = img.to(self.device)
-        #     output = self.model(img)
-        #     _, pred = output.topk(3, 1, True, True)
-        #     labels = np.concatenate([labels, pred.cpu()], axis=0)
-        #
-        # # print(labels)
-        # top3 = []
-        # for i, label in enumerate(labels):
-        #     for l in label:
-        #         top3.append(self.dec_dict[l])
-        #
-        # print(top3)
+        testset = DoodleDataset('tmp.csv', 'dataset/test_simplified', mode='test', nrows=None,
+                                size=self.image_size)
+        testloader = DataLoader(testset, batch_size=1)
+        # #
+        labels = np.empty((0, 3))
+        for img in tqdm.tqdm(testloader):
+            img = img.to(self.device)
+            output = self.model(img)
+            _, pred = output.topk(3, 1, True, True)
+            labels = np.concatenate([labels, pred.cpu()], axis=0)
+        # #
+        # # # print(labels)
+        top3 = []
+        for i, label in enumerate(labels):
+            for l in label:
+                top3.append(self.dec_dict[l])
+        # #
+        print(top3)
+
+        if window.label in top3:
+            window.endGame(1)
+
+        window.update_top3(top3)
+        # print('compute end : {}'.format(window.timeLeft))
+
         # return top3
-        return ['a', 'b', 'c']
+        # return ['a', 'b', 'c']
 
 
 
@@ -368,15 +390,18 @@ class MainWindow(QMainWindow):
 
         guess_label = QLabel()
         time_counter = QLabel()
+        top3_label = QLabel()
 
         viewer = QWidget()
         hbox = QHBoxLayout()
         viewer.setLayout(hbox)
         hbox.addWidget(guess_label)
         hbox.addWidget(time_counter)
+        hbox.addWidget(top3_label)
 
         self.time_counter = time_counter
         self.guess_label = guess_label
+        self.top3_label = top3_label
         self.viewer = viewer
 
         mainMenu = self.menuBar()
@@ -393,6 +418,9 @@ class MainWindow(QMainWindow):
         vbox.addWidget(self.drawboard)
 
         self.create_label()
+        self.gaming = False
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.timerTimeout)
 
     def create_label(self):
         label_dict = {}
@@ -408,30 +436,41 @@ class MainWindow(QMainWindow):
         self.dec_dict = dec_dict
 
     def startGame(self):
+        self.gaming = True
+        self.drawboard.clear_board()
         label = self.dec_dict[random.randrange(len(self.label_dict) + 1)]
         self.update_label(label)
         self.timeLeft = 20
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.timerTimeout)
         self.timer.start(1000)
         self.update_timer()
         self.label = label
 
-    def timerTimeout(self):
-        label3 = self.drawboard.compute()
-        if self.label in label3:
-            self.endGame(1)
-        self.timeLeft -= 1
-        if self.timeLeft == 0:
-            self.endGame(0)
 
-        self.update_timer()
+    def timerTimeout(self):
+        if self.gaming:
+            # if self.timeLeft % 4 == 0 or self.timeLeft < 3:
+
+            p = ProcessRunnable(target=self.drawboard.compute, args=())
+            p.start()
+            print('timeout here: {}'.format(self.timeLeft))
+
+            # label3 = self.drawboard.compute()
+            # if self.label in label3:
+            #     self.endGame(0)
+
+
+            self.timeLeft -= 1
+            if self.timeLeft == 0:
+                self.endGame(0)
+
+            self.update_timer()
 
     def endGame(self, win):
         if win:
-            self.update_label('WIN')
+            self.update_label('WIN, TIME LEFT {}'.format(str(self.timeLeft)))
         else:
             self.update_label('LOSE')
+        self.gaming = False
 
     def update_timer(self):
         self.time_counter.setText(str(self.timeLeft))
@@ -439,7 +478,8 @@ class MainWindow(QMainWindow):
     def update_label(self, label):
         self.guess_label.setText(label)
 
-
+    def update_top3(self, labels):
+        self.top3_label.setText('Are you drawing {} ? {} ? {} ?'.format(labels[0], labels[1], labels[2]))
         # print(self.menuBar().size())
 
 if __name__ == '__main__':
