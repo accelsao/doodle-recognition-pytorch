@@ -1,7 +1,10 @@
+import ast
 import sys
 import numpy as np
 import cv2 as cv
-from PyQt5.QtCore import QMimeData, QPointF, Qt, QObject, pyqtSlot, QSize, QAbstractListModel, QRectF, QPoint, QRect
+import torch
+from PyQt5.QtCore import QMimeData, QPointF, Qt, QObject, pyqtSlot, QSize, QAbstractListModel, QRectF, QPoint, QRect, \
+    QTimer
 from PyQt5.QtGui import QImage, QPixmap, QDrag, QPainter, QStandardItemModel, QIcon, QPen, QColor, QCursor
 from PyQt5.QtWidgets import (QApplication, QDialog, QFileDialog, QGridLayout,
                              QLabel, QPushButton, QWidget, QVBoxLayout, QListWidget, QAbstractItemView, QHBoxLayout,
@@ -9,7 +12,65 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QFileDialog, QGridLayout,
                              QAction, QSpacerItem, QSizePolicy, QSlider)
 
 import pandas as pd
+import tqdm
+import glob
+import os
 from simplification.cutil import simplify_coords
+import torch.nn as nn
+from torch.optim import Adam
+from torch.utils.data import Dataset, DataLoader, ConcatDataset
+from torchvision.models import resnet18, resnet34, resnet50, mobilenet_v2
+import random
+
+
+
+class DoodleDataset(Dataset):
+    def __init__(self, csv_file, root_dir, mode='train', nrows=1000, skiprows=None,
+                 size=256, thickness=2, transform=None):
+        super(DoodleDataset, self).__init__()
+
+        self.thickness = thickness
+        self.root_dir = root_dir
+        self.mode = mode
+        self.size = size
+        self.transform = transform
+        file = os.path.join(self.root_dir, csv_file)
+        self.data = pd.read_csv(file, usecols=['drawing'], nrows=nrows, skiprows=skiprows)
+
+        if self.mode == 'train':
+            self.label = self.get_label(csv_file)
+
+    @staticmethod
+    def draw(raw_strokes, size=256, thickness=2, color_by_time=True):
+        img = np.zeros((255, 255), np.uint8)
+        for t, stroke in enumerate(raw_strokes):
+            for i in range(1, len(stroke[0])):
+                color = 255 - min(t, 10) * 13 if color_by_time else 255
+                cv.line(img, (stroke[0][i - 1], stroke[1][i - 1]), (stroke[0][i], stroke[1][i]), color, thickness)
+
+        if size != 255:
+            img = cv.resize(img, (size, size))
+
+        return img
+
+    def get_label(self, csv_file):
+        return window.label_dict[csv_file.split('/')[-1].replace(' ', '_')[:-4]]
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        raw_strokes = ast.literal_eval(self.data.drawing[idx])
+        sample = self.draw(raw_strokes, self.size, self.thickness)
+
+        if self.transform:
+            sample = self.transform(sample)
+        if self.mode == 'train':
+            # sample[None] equivalent to numpy.newaxis
+            return (sample[None] / 255).astype('float32'), self.label
+        else:
+            return (sample[None] / 255).astype('float32')
+
 
 class DrawBoard(QLabel):
     def __init__(self):
@@ -19,8 +80,8 @@ class DrawBoard(QLabel):
         self.image = QImage(self.size(), QImage.Format_ARGB32)
         self.image.fill(Qt.white)
         self.imageDraw = QImage(self.size(), QImage.Format_ARGB32)
-        # self.imageDraw.fill(Qt.transparent)
-        self.imageDraw.fill(Qt.white)
+        self.imageDraw.fill(Qt.transparent)
+        # self.imageDraw.fill(Qt.white)
 
         self.drawing = False
         self.brushSize = 2
@@ -30,6 +91,66 @@ class DrawBoard(QLabel):
         self.change = False
         self.strokes = []
         self.stroke = []
+
+
+
+        self.batch_size = 128
+        self.epochs = 1
+        self.input_nc = 64
+        self.lr = 2e-3
+        self.image_size = 224
+        self.select_nrows = 10000
+        self.num_classes = 340
+
+        self.print_freq = 1000
+
+        self.create_label()
+        self.init_model()
+        self.compute()
+
+
+
+    def create_label(self):
+        label_dict = {}
+        path = r'dataset\train_simplified'
+        filenames = sorted(glob.glob(os.path.join(path, '*.csv')))
+        for i, fn in enumerate(filenames):
+            # print(fn[:-4].split('\\'))
+            # print(fn[:-4].split('//', '/')[-1].replace(' ', '_'))
+            label_dict[fn[:-4].split('\\')[-1].replace(' ', '_')] = i
+        dec_dict = {v: k for k, v in label_dict.items()}
+
+        self.label_dict = label_dict
+        self.dec_dict = dec_dict
+
+
+
+    def init_model(self):
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        filename_pth = 'pretrained/checkpoint_mobilenetv2.pth'
+
+        model = mobilenet_v2()
+
+        def squeeze_weights(m):
+            m.weight.data = m.weight.data.sum(1, keepdim=True)
+            m.in_channels = 1
+
+        model.features[0][0].apply(squeeze_weights)
+        model.classifier = nn.Sequential(
+            nn.Dropout(0.2),
+            nn.Linear(1280, self.num_classes),
+        )
+        print(model)
+        model = model.to(device)
+        criterion = nn.CrossEntropyLoss().to(device)
+        optimizer = Adam(model.parameters(), lr=self.lr)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[5000, 12000, 18000], gamma=0.5)
+        model.load_state_dict(torch.load(filename_pth, map_location=device))
+        model.eval()
+
+        self.model = model
+        self.device = device
+
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -65,10 +186,27 @@ class DrawBoard(QLabel):
 
     def paintEvent(self, event):
         super(DrawBoard, self).paintEvent(event)
-        # canvasPainter = QPainter(self)
+
         canvasPainter = QPainter(self)
-        # canvasPainter.drawImage(self.rect(), self.image, self.image.rect())
+        canvasPainter.drawImage(self.rect(), self.image, self.image.rect())
         canvasPainter.drawImage(self.rect(), self.imageDraw, self.imageDraw.rect())
+
+    def clear_board(self):
+        self.imageDraw = QImage(self.size(), QImage.Format_ARGB32)
+        self.imageDraw.fill(Qt.transparent)
+        self.update()
+
+        self.strokes = []
+
+        # painter = QPainter(self.imageDraw)
+        # # painter = QPainter(self)
+        # painter.setPen(QPen(self.brushColor, self.brushSize, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        # r = QRect(self.imageDraw.size())
+        # # r.moveCenter(event.pos())
+        # painter.save()
+        # painter.setCompositionMode(QPainter.CompositionMode_Clear)
+        # painter.eraseRect(r)
+        # painter.restore()
 
     # def changeColour(self):
     #     self.change = not self.change
@@ -99,7 +237,7 @@ class DrawBoard(QLabel):
 
         return img
 
-    def saveImg(self):
+    def compute(self):
         # print(123)
         qimg = self.imageDraw
         # print(456)
@@ -131,7 +269,6 @@ class DrawBoard(QLabel):
         # print(x_min, x_max, y_min, y_max)
         # breakpoint()
         stks = []
-        mx = 0
         for stk in self.strokes:
             # print(stk)
             # print(p.shape)
@@ -150,15 +287,15 @@ class DrawBoard(QLabel):
             # print(p.shape)
             a = np.array(p[0])
             b = np.array(p[1])
-            print(a, b)
+            # print(a, b)
             p = np.stack((a, b), axis=-1)
-            print(p)
-            print(p.shape)
+            # print(p)
+            # print(p.shape)
             # breakpoint()
 
             p = simplify_coords(p, 2.0)
             p = np.split(p, [-1], axis=1)
-            print(p)
+            # print(p)
 
             p = np.array(p).squeeze(-1).astype(np.uint8)
             stks.append(p.tolist())
@@ -167,12 +304,33 @@ class DrawBoard(QLabel):
         data = pd.DataFrame([[9000003627287624, 'UA', stks.__str__()]], columns=['key_id', 'countrycode', 'drawing'])
         data.to_csv('dataset/test_simplified/tmp.csv')
 
-        # img = self.draw(stks)
-        # cv.imwrite('images/sim_tmp.png', img)
-        self.compute()
+        img = self.draw(stks)
+        cv.imwrite('images/sim_tmp.png', img)
 
-    def compute(self):
-        # compute label
+
+
+        # dataset/test_simplified/tmp.csv
+
+        # testset = DoodleDataset('tmp.csv', 'dataset/test_simplified', mode='test', nrows=None,
+        #                         size=self.image_size)
+        # testloader = DataLoader(testset, batch_size=1)
+        #
+        # labels = np.empty((0, 3))
+        # for img in tqdm.tqdm(testloader):
+        #     img = img.to(self.device)
+        #     output = self.model(img)
+        #     _, pred = output.topk(3, 1, True, True)
+        #     labels = np.concatenate([labels, pred.cpu()], axis=0)
+        #
+        # # print(labels)
+        # top3 = []
+        # for i, label in enumerate(labels):
+        #     for l in label:
+        #         top3.append(self.dec_dict[l])
+        #
+        # print(top3)
+        # return top3
+        return ['a', 'b', 'c']
 
 
 
@@ -206,18 +364,80 @@ class MainWindow(QMainWindow):
         self.setFixedSize(QSize(800, 600))
         self.drawboard = DrawBoard()
 
-        print(self.drawboard.size())
-        self.time_counter = QLabel()
+
+
+        guess_label = QLabel()
+        time_counter = QLabel()
+
+        viewer = QWidget()
+        hbox = QHBoxLayout()
+        viewer.setLayout(hbox)
+        hbox.addWidget(guess_label)
+        hbox.addWidget(time_counter)
+
+        self.time_counter = time_counter
+        self.guess_label = guess_label
+        self.viewer = viewer
 
         mainMenu = self.menuBar()
         # mainMenu.addAction("changeColour", self.drawboard.changeColour)
-        mainMenu.addAction("saveImg", self.drawboard.saveImg)
+        # mainMenu.addAction("saveImg", self.drawboard.saveImg)
+        mainMenu.addAction("start", self.startGame)
+        mainMenu.addAction("clear", self.drawboard.clear_board)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         vbox = QVBoxLayout()
         central_widget.setLayout(vbox)
+        vbox.addWidget(self.viewer)
         vbox.addWidget(self.drawboard)
+
+        self.create_label()
+
+    def create_label(self):
+        label_dict = {}
+        path = r'dataset\train_simplified'
+        filenames = sorted(glob.glob(os.path.join(path, '*.csv')))
+        for i, fn in enumerate(filenames):
+            # print(fn[:-4].split('\\'))
+            # print(fn[:-4].split('//', '/')[-1].replace(' ', '_'))
+            label_dict[fn[:-4].split('\\')[-1].replace(' ', '_')] = i
+        dec_dict = {v: k for k, v in label_dict.items()}
+
+        self.label_dict = label_dict
+        self.dec_dict = dec_dict
+
+    def startGame(self):
+        label = self.dec_dict[random.randrange(len(self.label_dict) + 1)]
+        self.update_label(label)
+        self.timeLeft = 20
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.timerTimeout)
+        self.timer.start(1000)
+        self.update_timer()
+        self.label = label
+
+    def timerTimeout(self):
+        label3 = self.drawboard.compute()
+        if self.label in label3:
+            self.endGame(1)
+        self.timeLeft -= 1
+        if self.timeLeft == 0:
+            self.endGame(0)
+
+        self.update_timer()
+
+    def endGame(self, win):
+        if win:
+            self.update_label('WIN')
+        else:
+            self.update_label('LOSE')
+
+    def update_timer(self):
+        self.time_counter.setText(str(self.timeLeft))
+
+    def update_label(self, label):
+        self.guess_label.setText(label)
 
 
         # print(self.menuBar().size())
