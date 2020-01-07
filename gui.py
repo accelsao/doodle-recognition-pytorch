@@ -21,8 +21,7 @@ from torch.optim import Adam
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision.models import resnet18, resnet34, resnet50, mobilenet_v2
 import random
-from multiprocessing import Process, Queue
-import traceback
+
 
 class DoodleDataset(Dataset):
     def __init__(self, csv_file, root_dir, mode='train', nrows=1000, skiprows=None,
@@ -254,9 +253,9 @@ class DrawBoard(QLabel):
         return img
 
     def compute(self):
-        qimg = self.imageDraw
+        # qimg = self.imageDraw
         # print(456)
-        qimg.save('images/tmp.png', 'png')
+        # qimg.save('images/tmp.png', 'png')
         # mat = cv.imread('images/tmp.png', 0)
         # mat = cv.resize(mat, (224, 224))
         # print(mat)
@@ -336,8 +335,7 @@ class DrawBoard(QLabel):
             output = self.model(img)
             _, pred = output.topk(3, 1, True, True)
             labels = np.concatenate([labels, pred.cpu()], axis=0)
-        # #
-        # # # print(labels)
+
         top3 = []
         for i, label in enumerate(labels):
             for l in label:
@@ -467,7 +465,8 @@ class MainWindow(QMainWindow):
 
     def endGame(self, win):
         if win:
-            self.update_label('WIN, TIME LEFT {}'.format(str(self.timeLeft)))
+            self.update_label('WIN, TIME LEFT: ')
+            # self.update_label('WIN, TIME LEFT {}'.format(str(self.timeLeft)))
         else:
             self.update_label('LOSE')
         self.gaming = False

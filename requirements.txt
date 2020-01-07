@@ -1,0 +1,7 @@
+simplification
+tqdm
+pandas
+PyQt5
+numpy
+cv2
+torch
