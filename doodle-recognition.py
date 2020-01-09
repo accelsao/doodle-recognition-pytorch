@@ -147,7 +147,6 @@ def imshow(img):
 def mapk(output, target, k=3):
     """
     Computes the mean average precision at k.
-
     Parameters
     ----------
     output (torch.Tensor): A Tensor of predicted elements.
@@ -155,7 +154,6 @@ def mapk(output, target, k=3):
     target (torch.int): A Tensor of elements that are to be predicted.
                         Shape: (N) where each value is  0≤targets[i]≤C−1
     k (int, optional): The maximum number of predicted elements
-
     Returns
     -------
     score (torch.float):  The mean average precision at k over the output
@@ -279,4 +277,4 @@ for i, label in enumerate(labels):
     submission.word.iloc[i] = " ".join([dec_dict[l] for l in label])
 submission.head()
 
-submission.to_csv('preds_resnet50.csv')
+submission.to_csv('preds_mobilenetv2.csv')

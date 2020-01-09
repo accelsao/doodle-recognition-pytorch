@@ -126,17 +126,156 @@ class DrawBoard(QLabel):
 
 
     def create_label(self):
-        label_dict = {}
-        path = r'dataset\train_simplified'
-        filenames = sorted(glob.glob(os.path.join(path, '*.csv')))
-        for i, fn in enumerate(filenames):
-            # print(fn[:-4].split('\\'))
-            # print(fn[:-4].split('//', '/')[-1].replace(' ', '_'))
-            label_dict[fn[:-4].split('\\')[-1].replace(' ', '_')] = i
-        dec_dict = {v: k for k, v in label_dict.items()}
-
-        self.label_dict = label_dict
-        self.dec_dict = dec_dict
+        self.label_dict = {'The_Eiffel_Tower': 0, 'The_Great_Wall_of_China': 1, 'The_Mona_Lisa': 2, 'airplane': 3,
+                           'alarm_clock': 4, 'ambulance': 5, 'angel': 6, 'animal_migration': 7, 'ant': 8, 'anvil': 9,
+                           'apple': 10, 'arm': 11, 'asparagus': 12, 'axe': 13, 'backpack': 14, 'banana': 15,
+                           'bandage': 16,
+                           'barn': 17, 'baseball_bat': 18, 'baseball': 19, 'basket': 20, 'basketball': 21, 'bat': 22,
+                           'bathtub': 23, 'beach': 24, 'bear': 25, 'beard': 26, 'bed': 27, 'bee': 28, 'belt': 29,
+                           'bench': 30, 'bicycle': 31, 'binoculars': 32, 'bird': 33, 'birthday_cake': 34,
+                           'blackberry': 35,
+                           'blueberry': 36, 'book': 37, 'boomerang': 38, 'bottlecap': 39, 'bowtie': 40, 'bracelet': 41,
+                           'brain': 42, 'bread': 43, 'bridge': 44, 'broccoli': 45, 'broom': 46, 'bucket': 47,
+                           'bulldozer': 48, 'bus': 49, 'bush': 50, 'butterfly': 51, 'cactus': 52, 'cake': 53,
+                           'calculator': 54, 'calendar': 55, 'camel': 56, 'camera': 57, 'camouflage': 58,
+                           'campfire': 59,
+                           'candle': 60, 'cannon': 61, 'canoe': 62, 'car': 63, 'carrot': 64, 'castle': 65, 'cat': 66,
+                           'ceiling_fan': 67, 'cell_phone': 68, 'cello': 69, 'chair': 70, 'chandelier': 71,
+                           'church': 72,
+                           'circle': 73, 'clarinet': 74, 'clock': 75, 'cloud': 76, 'coffee_cup': 77, 'compass': 78,
+                           'computer': 79, 'cookie': 80, 'cooler': 81, 'couch': 82, 'cow': 83, 'crab': 84, 'crayon': 85,
+                           'crocodile': 86, 'crown': 87, 'cruise_ship': 88, 'cup': 89, 'diamond': 90, 'dishwasher': 91,
+                           'diving_board': 92, 'dog': 93, 'dolphin': 94, 'donut': 95, 'door': 96, 'dragon': 97,
+                           'dresser': 98, 'drill': 99, 'drums': 100, 'duck': 101, 'dumbbell': 102, 'ear': 103,
+                           'elbow': 104,
+                           'elephant': 105, 'envelope': 106, 'eraser': 107, 'eye': 108, 'eyeglasses': 109, 'face': 110,
+                           'fan': 111, 'feather': 112, 'fence': 113, 'finger': 114, 'fire_hydrant': 115,
+                           'fireplace': 116,
+                           'firetruck': 117, 'fish': 118, 'flamingo': 119, 'flashlight': 120, 'flip_flops': 121,
+                           'floor_lamp': 122, 'flower': 123, 'flying_saucer': 124, 'foot': 125, 'fork': 126,
+                           'frog': 127,
+                           'frying_pan': 128, 'garden_hose': 129, 'garden': 130, 'giraffe': 131, 'goatee': 132,
+                           'golf_club': 133, 'grapes': 134, 'grass': 135, 'guitar': 136, 'hamburger': 137,
+                           'hammer': 138,
+                           'hand': 139, 'harp': 140, 'hat': 141, 'headphones': 142, 'hedgehog': 143, 'helicopter': 144,
+                           'helmet': 145, 'hexagon': 146, 'hockey_puck': 147, 'hockey_stick': 148, 'horse': 149,
+                           'hospital': 150, 'hot_air_balloon': 151, 'hot_dog': 152, 'hot_tub': 153, 'hourglass': 154,
+                           'house_plant': 155, 'house': 156, 'hurricane': 157, 'ice_cream': 158, 'jacket': 159,
+                           'jail': 160,
+                           'kangaroo': 161, 'key': 162, 'keyboard': 163, 'knee': 164, 'ladder': 165, 'lantern': 166,
+                           'laptop': 167, 'leaf': 168, 'leg': 169, 'light_bulb': 170, 'lighthouse': 171,
+                           'lightning': 172,
+                           'line': 173, 'lion': 174, 'lipstick': 175, 'lobster': 176, 'lollipop': 177, 'mailbox': 178,
+                           'map': 179, 'marker': 180, 'matches': 181, 'megaphone': 182, 'mermaid': 183,
+                           'microphone': 184,
+                           'microwave': 185, 'monkey': 186, 'moon': 187, 'mosquito': 188, 'motorbike': 189,
+                           'mountain': 190,
+                           'mouse': 191, 'moustache': 192, 'mouth': 193, 'mug': 194, 'mushroom': 195, 'nail': 196,
+                           'necklace': 197, 'nose': 198, 'ocean': 199, 'octagon': 200, 'octopus': 201, 'onion': 202,
+                           'oven': 203, 'owl': 204, 'paint_can': 205, 'paintbrush': 206, 'palm_tree': 207, 'panda': 208,
+                           'pants': 209, 'paper_clip': 210, 'parachute': 211, 'parrot': 212, 'passport': 213,
+                           'peanut': 214,
+                           'pear': 215, 'peas': 216, 'pencil': 217, 'penguin': 218, 'piano': 219, 'pickup_truck': 220,
+                           'picture_frame': 221, 'pig': 222, 'pillow': 223, 'pineapple': 224, 'pizza': 225,
+                           'pliers': 226,
+                           'police_car': 227, 'pond': 228, 'pool': 229, 'popsicle': 230, 'postcard': 231, 'potato': 232,
+                           'power_outlet': 233, 'purse': 234, 'rabbit': 235, 'raccoon': 236, 'radio': 237, 'rain': 238,
+                           'rainbow': 239, 'rake': 240, 'remote_control': 241, 'rhinoceros': 242, 'river': 243,
+                           'roller_coaster': 244, 'rollerskates': 245, 'sailboat': 246, 'sandwich': 247, 'saw': 248,
+                           'saxophone': 249, 'school_bus': 250, 'scissors': 251, 'scorpion': 252, 'screwdriver': 253,
+                           'sea_turtle': 254, 'see_saw': 255, 'shark': 256, 'sheep': 257, 'shoe': 258, 'shorts': 259,
+                           'shovel': 260, 'sink': 261, 'skateboard': 262, 'skull': 263, 'skyscraper': 264,
+                           'sleeping_bag': 265, 'smiley_face': 266, 'snail': 267, 'snake': 268, 'snorkel': 269,
+                           'snowflake': 270, 'snowman': 271, 'soccer_ball': 272, 'sock': 273, 'speedboat': 274,
+                           'spider': 275, 'spoon': 276, 'spreadsheet': 277, 'square': 278, 'squiggle': 279,
+                           'squirrel': 280,
+                           'stairs': 281, 'star': 282, 'steak': 283, 'stereo': 284, 'stethoscope': 285, 'stitches': 286,
+                           'stop_sign': 287, 'stove': 288, 'strawberry': 289, 'streetlight': 290, 'string_bean': 291,
+                           'submarine': 292, 'suitcase': 293, 'sun': 294, 'swan': 295, 'sweater': 296, 'swing_set': 297,
+                           'sword': 298, 't-shirt': 299, 'table': 300, 'teapot': 301, 'teddy-bear': 302,
+                           'telephone': 303,
+                           'television': 304, 'tennis_racquet': 305, 'tent': 306, 'tiger': 307, 'toaster': 308,
+                           'toe': 309,
+                           'toilet': 310, 'tooth': 311, 'toothbrush': 312, 'toothpaste': 313, 'tornado': 314,
+                           'tractor': 315, 'traffic_light': 316, 'train': 317, 'tree': 318, 'triangle': 319,
+                           'trombone': 320, 'truck': 321, 'trumpet': 322, 'umbrella': 323, 'underwear': 324, 'van': 325,
+                           'vase': 326, 'violin': 327, 'washing_machine': 328, 'watermelon': 329, 'waterslide': 330,
+                           'whale': 331, 'wheel': 332, 'windmill': 333, 'wine_bottle': 334, 'wine_glass': 335,
+                           'wristwatch': 336, 'yoga': 337, 'zebra': 338, 'zigzag': 339}
+        self.dec_dict = {0: 'The_Eiffel_Tower', 1: 'The_Great_Wall_of_China', 2: 'The_Mona_Lisa', 3: 'airplane',
+                         4: 'alarm_clock', 5: 'ambulance', 6: 'angel', 7: 'animal_migration', 8: 'ant', 9: 'anvil',
+                         10: 'apple', 11: 'arm', 12: 'asparagus', 13: 'axe', 14: 'backpack', 15: 'banana',
+                         16: 'bandage',
+                         17: 'barn', 18: 'baseball_bat', 19: 'baseball', 20: 'basket', 21: 'basketball', 22: 'bat',
+                         23: 'bathtub', 24: 'beach', 25: 'bear', 26: 'beard', 27: 'bed', 28: 'bee', 29: 'belt',
+                         30: 'bench',
+                         31: 'bicycle', 32: 'binoculars', 33: 'bird', 34: 'birthday_cake', 35: 'blackberry',
+                         36: 'blueberry', 37: 'book', 38: 'boomerang', 39: 'bottlecap', 40: 'bowtie', 41: 'bracelet',
+                         42: 'brain', 43: 'bread', 44: 'bridge', 45: 'broccoli', 46: 'broom', 47: 'bucket',
+                         48: 'bulldozer',
+                         49: 'bus', 50: 'bush', 51: 'butterfly', 52: 'cactus', 53: 'cake', 54: 'calculator',
+                         55: 'calendar',
+                         56: 'camel', 57: 'camera', 58: 'camouflage', 59: 'campfire', 60: 'candle', 61: 'cannon',
+                         62: 'canoe', 63: 'car', 64: 'carrot', 65: 'castle', 66: 'cat', 67: 'ceiling_fan',
+                         68: 'cell_phone',
+                         69: 'cello', 70: 'chair', 71: 'chandelier', 72: 'church', 73: 'circle', 74: 'clarinet',
+                         75: 'clock', 76: 'cloud', 77: 'coffee_cup', 78: 'compass', 79: 'computer', 80: 'cookie',
+                         81: 'cooler', 82: 'couch', 83: 'cow', 84: 'crab', 85: 'crayon', 86: 'crocodile', 87: 'crown',
+                         88: 'cruise_ship', 89: 'cup', 90: 'diamond', 91: 'dishwasher', 92: 'diving_board', 93: 'dog',
+                         94: 'dolphin', 95: 'donut', 96: 'door', 97: 'dragon', 98: 'dresser', 99: 'drill', 100: 'drums',
+                         101: 'duck', 102: 'dumbbell', 103: 'ear', 104: 'elbow', 105: 'elephant', 106: 'envelope',
+                         107: 'eraser', 108: 'eye', 109: 'eyeglasses', 110: 'face', 111: 'fan', 112: 'feather',
+                         113: 'fence', 114: 'finger', 115: 'fire_hydrant', 116: 'fireplace', 117: 'firetruck',
+                         118: 'fish',
+                         119: 'flamingo', 120: 'flashlight', 121: 'flip_flops', 122: 'floor_lamp', 123: 'flower',
+                         124: 'flying_saucer', 125: 'foot', 126: 'fork', 127: 'frog', 128: 'frying_pan',
+                         129: 'garden_hose',
+                         130: 'garden', 131: 'giraffe', 132: 'goatee', 133: 'golf_club', 134: 'grapes', 135: 'grass',
+                         136: 'guitar', 137: 'hamburger', 138: 'hammer', 139: 'hand', 140: 'harp', 141: 'hat',
+                         142: 'headphones', 143: 'hedgehog', 144: 'helicopter', 145: 'helmet', 146: 'hexagon',
+                         147: 'hockey_puck', 148: 'hockey_stick', 149: 'horse', 150: 'hospital', 151: 'hot_air_balloon',
+                         152: 'hot_dog', 153: 'hot_tub', 154: 'hourglass', 155: 'house_plant', 156: 'house',
+                         157: 'hurricane', 158: 'ice_cream', 159: 'jacket', 160: 'jail', 161: 'kangaroo', 162: 'key',
+                         163: 'keyboard', 164: 'knee', 165: 'ladder', 166: 'lantern', 167: 'laptop', 168: 'leaf',
+                         169: 'leg', 170: 'light_bulb', 171: 'lighthouse', 172: 'lightning', 173: 'line', 174: 'lion',
+                         175: 'lipstick', 176: 'lobster', 177: 'lollipop', 178: 'mailbox', 179: 'map', 180: 'marker',
+                         181: 'matches', 182: 'megaphone', 183: 'mermaid', 184: 'microphone', 185: 'microwave',
+                         186: 'monkey', 187: 'moon', 188: 'mosquito', 189: 'motorbike', 190: 'mountain', 191: 'mouse',
+                         192: 'moustache', 193: 'mouth', 194: 'mug', 195: 'mushroom', 196: 'nail', 197: 'necklace',
+                         198: 'nose', 199: 'ocean', 200: 'octagon', 201: 'octopus', 202: 'onion', 203: 'oven',
+                         204: 'owl',
+                         205: 'paint_can', 206: 'paintbrush', 207: 'palm_tree', 208: 'panda', 209: 'pants',
+                         210: 'paper_clip', 211: 'parachute', 212: 'parrot', 213: 'passport', 214: 'peanut',
+                         215: 'pear',
+                         216: 'peas', 217: 'pencil', 218: 'penguin', 219: 'piano', 220: 'pickup_truck',
+                         221: 'picture_frame', 222: 'pig', 223: 'pillow', 224: 'pineapple', 225: 'pizza', 226: 'pliers',
+                         227: 'police_car', 228: 'pond', 229: 'pool', 230: 'popsicle', 231: 'postcard', 232: 'potato',
+                         233: 'power_outlet', 234: 'purse', 235: 'rabbit', 236: 'raccoon', 237: 'radio', 238: 'rain',
+                         239: 'rainbow', 240: 'rake', 241: 'remote_control', 242: 'rhinoceros', 243: 'river',
+                         244: 'roller_coaster', 245: 'rollerskates', 246: 'sailboat', 247: 'sandwich', 248: 'saw',
+                         249: 'saxophone', 250: 'school_bus', 251: 'scissors', 252: 'scorpion', 253: 'screwdriver',
+                         254: 'sea_turtle', 255: 'see_saw', 256: 'shark', 257: 'sheep', 258: 'shoe', 259: 'shorts',
+                         260: 'shovel', 261: 'sink', 262: 'skateboard', 263: 'skull', 264: 'skyscraper',
+                         265: 'sleeping_bag', 266: 'smiley_face', 267: 'snail', 268: 'snake', 269: 'snorkel',
+                         270: 'snowflake', 271: 'snowman', 272: 'soccer_ball', 273: 'sock', 274: 'speedboat',
+                         275: 'spider',
+                         276: 'spoon', 277: 'spreadsheet', 278: 'square', 279: 'squiggle', 280: 'squirrel',
+                         281: 'stairs',
+                         282: 'star', 283: 'steak', 284: 'stereo', 285: 'stethoscope', 286: 'stitches',
+                         287: 'stop_sign',
+                         288: 'stove', 289: 'strawberry', 290: 'streetlight', 291: 'string_bean', 292: 'submarine',
+                         293: 'suitcase', 294: 'sun', 295: 'swan', 296: 'sweater', 297: 'swing_set', 298: 'sword',
+                         299: 't-shirt', 300: 'table', 301: 'teapot', 302: 'teddy-bear', 303: 'telephone',
+                         304: 'television', 305: 'tennis_racquet', 306: 'tent', 307: 'tiger', 308: 'toaster',
+                         309: 'toe',
+                         310: 'toilet', 311: 'tooth', 312: 'toothbrush', 313: 'toothpaste', 314: 'tornado',
+                         315: 'tractor',
+                         316: 'traffic_light', 317: 'train', 318: 'tree', 319: 'triangle', 320: 'trombone',
+                         321: 'truck',
+                         322: 'trumpet', 323: 'umbrella', 324: 'underwear', 325: 'van', 326: 'vase', 327: 'violin',
+                         328: 'washing_machine', 329: 'watermelon', 330: 'waterslide', 331: 'whale', 332: 'wheel',
+                         333: 'windmill', 334: 'wine_bottle', 335: 'wine_glass', 336: 'wristwatch', 337: 'yoga',
+                         338: 'zebra', 339: 'zigzag'}
 
 
 
@@ -210,32 +349,7 @@ class DrawBoard(QLabel):
         self.imageDraw = QImage(self.size(), QImage.Format_ARGB32)
         self.imageDraw.fill(Qt.transparent)
         self.update()
-
         self.strokes = []
-
-        # painter = QPainter(self.imageDraw)
-        # # painter = QPainter(self)
-        # painter.setPen(QPen(self.brushColor, self.brushSize, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-        # r = QRect(self.imageDraw.size())
-        # # r.moveCenter(event.pos())
-        # painter.save()
-        # painter.setCompositionMode(QPainter.CompositionMode_Clear)
-        # painter.eraseRect(r)
-        # painter.restore()
-
-    # def changeColour(self):
-    #     self.change = not self.change
-    #     if self.change:
-    #         pixmap = QPixmap(QSize(1, 1) * self._clear_size)
-    #         pixmap.fill(Qt.transparent)
-    #         painter = QPainter(pixmap)
-    #         painter.setPen(QPen(Qt.black, 2))
-    #         painter.drawRect(pixmap.rect())
-    #         painter.end()
-    #         cursor = QCursor(pixmap)
-    #         QApplication.setOverrideCursor(cursor)
-    #     else:
-    #         QApplication.restoreOverrideCursor()
 
     @staticmethod
     def draw(raw_strokes, size=256, thickness=2, color_by_time=True):
@@ -253,15 +367,7 @@ class DrawBoard(QLabel):
         return img
 
     def compute(self):
-        # qimg = self.imageDraw
-        # print(456)
-        # qimg.save('images/tmp.png', 'png')
-        # mat = cv.imread('images/tmp.png', 0)
-        # mat = cv.resize(mat, (224, 224))
-        # print(mat)
-        # print(mat.shape)
-        # unique, counts = np.unique(mat, return_counts=True)
-        # print(dict(zip(unique, counts)))
+
 
         x_min, x_max = 800, 0
         y_min, y_max = 600, 0
@@ -276,16 +382,10 @@ class DrawBoard(QLabel):
             y_min = min(y_min, np.min(p[1]))
             y_max = max(y_max, np.max(p[1]))
 
-            # breakpoint()
-        # print(x)
-        # print(np.array(x).flatten())
-        # breakpoint()
-        # print(x_min, x_max, y_min, y_max)
-        # breakpoint()
+
         stks = []
         for stk in self.strokes:
-            # print(stk)
-            # print(p.shape)
+
             p = np.split(np.array(stk), [-1], axis=1)
             p = np.array(p).astype(np.float32).squeeze(-1)
 
@@ -293,19 +393,15 @@ class DrawBoard(QLabel):
             p[1] -= y_min
             p[0] *= 255.0 / (x_max - x_min)
             p[1] *= 255.0 / (y_max - y_min)
-            # print(p)
-            # print(p.shape)
+
             p = p.astype(np.uint8)
-            # print(p)
-            # breakpoint()
-            # print(p.shape)
+
             a = np.array(p[0])
             b = np.array(p[1])
             # print(a, b)
             p = np.stack((a, b), axis=-1)
             # print(p)
-            # print(p.shape)
-            # breakpoint()
+
 
             p = simplify_coords(p, 2.0)
             p = np.split(p, [-1], axis=1)
@@ -421,17 +517,135 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.timerTimeout)
 
     def create_label(self):
-        label_dict = {}
-        path = r'dataset\train_simplified'
-        filenames = sorted(glob.glob(os.path.join(path, '*.csv')))
-        for i, fn in enumerate(filenames):
-            # print(fn[:-4].split('\\'))
-            # print(fn[:-4].split('//', '/')[-1].replace(' ', '_'))
-            label_dict[fn[:-4].split('\\')[-1].replace(' ', '_')] = i
-        dec_dict = {v: k for k, v in label_dict.items()}
+        # label_dict = {}
+        # path = r'dataset\train_simplified'
+        # filenames = sorted(glob.glob(os.path.join(path, '*.csv')))
+        # for i, fn in enumerate(filenames):
+        #     # print(fn[:-4].split('\\'))
+        #     # print(fn[:-4].split('//', '/')[-1].replace(' ', '_'))
+        #     label_dict[fn[:-4].split('\\')[-1].replace(' ', '_')] = i
+        # dec_dict = {v: k for k, v in label_dict.items()}
 
-        self.label_dict = label_dict
-        self.dec_dict = dec_dict
+
+        # hard code label instead of reading bunch of files
+        self.label_dict = {'The_Eiffel_Tower': 0, 'The_Great_Wall_of_China': 1, 'The_Mona_Lisa': 2, 'airplane': 3,
+                       'alarm_clock': 4, 'ambulance': 5, 'angel': 6, 'animal_migration': 7, 'ant': 8, 'anvil': 9,
+                       'apple': 10, 'arm': 11, 'asparagus': 12, 'axe': 13, 'backpack': 14, 'banana': 15, 'bandage': 16,
+                       'barn': 17, 'baseball_bat': 18, 'baseball': 19, 'basket': 20, 'basketball': 21, 'bat': 22,
+                       'bathtub': 23, 'beach': 24, 'bear': 25, 'beard': 26, 'bed': 27, 'bee': 28, 'belt': 29,
+                       'bench': 30, 'bicycle': 31, 'binoculars': 32, 'bird': 33, 'birthday_cake': 34, 'blackberry': 35,
+                       'blueberry': 36, 'book': 37, 'boomerang': 38, 'bottlecap': 39, 'bowtie': 40, 'bracelet': 41,
+                       'brain': 42, 'bread': 43, 'bridge': 44, 'broccoli': 45, 'broom': 46, 'bucket': 47,
+                       'bulldozer': 48, 'bus': 49, 'bush': 50, 'butterfly': 51, 'cactus': 52, 'cake': 53,
+                       'calculator': 54, 'calendar': 55, 'camel': 56, 'camera': 57, 'camouflage': 58, 'campfire': 59,
+                       'candle': 60, 'cannon': 61, 'canoe': 62, 'car': 63, 'carrot': 64, 'castle': 65, 'cat': 66,
+                       'ceiling_fan': 67, 'cell_phone': 68, 'cello': 69, 'chair': 70, 'chandelier': 71, 'church': 72,
+                       'circle': 73, 'clarinet': 74, 'clock': 75, 'cloud': 76, 'coffee_cup': 77, 'compass': 78,
+                       'computer': 79, 'cookie': 80, 'cooler': 81, 'couch': 82, 'cow': 83, 'crab': 84, 'crayon': 85,
+                       'crocodile': 86, 'crown': 87, 'cruise_ship': 88, 'cup': 89, 'diamond': 90, 'dishwasher': 91,
+                       'diving_board': 92, 'dog': 93, 'dolphin': 94, 'donut': 95, 'door': 96, 'dragon': 97,
+                       'dresser': 98, 'drill': 99, 'drums': 100, 'duck': 101, 'dumbbell': 102, 'ear': 103, 'elbow': 104,
+                       'elephant': 105, 'envelope': 106, 'eraser': 107, 'eye': 108, 'eyeglasses': 109, 'face': 110,
+                       'fan': 111, 'feather': 112, 'fence': 113, 'finger': 114, 'fire_hydrant': 115, 'fireplace': 116,
+                       'firetruck': 117, 'fish': 118, 'flamingo': 119, 'flashlight': 120, 'flip_flops': 121,
+                       'floor_lamp': 122, 'flower': 123, 'flying_saucer': 124, 'foot': 125, 'fork': 126, 'frog': 127,
+                       'frying_pan': 128, 'garden_hose': 129, 'garden': 130, 'giraffe': 131, 'goatee': 132,
+                       'golf_club': 133, 'grapes': 134, 'grass': 135, 'guitar': 136, 'hamburger': 137, 'hammer': 138,
+                       'hand': 139, 'harp': 140, 'hat': 141, 'headphones': 142, 'hedgehog': 143, 'helicopter': 144,
+                       'helmet': 145, 'hexagon': 146, 'hockey_puck': 147, 'hockey_stick': 148, 'horse': 149,
+                       'hospital': 150, 'hot_air_balloon': 151, 'hot_dog': 152, 'hot_tub': 153, 'hourglass': 154,
+                       'house_plant': 155, 'house': 156, 'hurricane': 157, 'ice_cream': 158, 'jacket': 159, 'jail': 160,
+                       'kangaroo': 161, 'key': 162, 'keyboard': 163, 'knee': 164, 'ladder': 165, 'lantern': 166,
+                       'laptop': 167, 'leaf': 168, 'leg': 169, 'light_bulb': 170, 'lighthouse': 171, 'lightning': 172,
+                       'line': 173, 'lion': 174, 'lipstick': 175, 'lobster': 176, 'lollipop': 177, 'mailbox': 178,
+                       'map': 179, 'marker': 180, 'matches': 181, 'megaphone': 182, 'mermaid': 183, 'microphone': 184,
+                       'microwave': 185, 'monkey': 186, 'moon': 187, 'mosquito': 188, 'motorbike': 189, 'mountain': 190,
+                       'mouse': 191, 'moustache': 192, 'mouth': 193, 'mug': 194, 'mushroom': 195, 'nail': 196,
+                       'necklace': 197, 'nose': 198, 'ocean': 199, 'octagon': 200, 'octopus': 201, 'onion': 202,
+                       'oven': 203, 'owl': 204, 'paint_can': 205, 'paintbrush': 206, 'palm_tree': 207, 'panda': 208,
+                       'pants': 209, 'paper_clip': 210, 'parachute': 211, 'parrot': 212, 'passport': 213, 'peanut': 214,
+                       'pear': 215, 'peas': 216, 'pencil': 217, 'penguin': 218, 'piano': 219, 'pickup_truck': 220,
+                       'picture_frame': 221, 'pig': 222, 'pillow': 223, 'pineapple': 224, 'pizza': 225, 'pliers': 226,
+                       'police_car': 227, 'pond': 228, 'pool': 229, 'popsicle': 230, 'postcard': 231, 'potato': 232,
+                       'power_outlet': 233, 'purse': 234, 'rabbit': 235, 'raccoon': 236, 'radio': 237, 'rain': 238,
+                       'rainbow': 239, 'rake': 240, 'remote_control': 241, 'rhinoceros': 242, 'river': 243,
+                       'roller_coaster': 244, 'rollerskates': 245, 'sailboat': 246, 'sandwich': 247, 'saw': 248,
+                       'saxophone': 249, 'school_bus': 250, 'scissors': 251, 'scorpion': 252, 'screwdriver': 253,
+                       'sea_turtle': 254, 'see_saw': 255, 'shark': 256, 'sheep': 257, 'shoe': 258, 'shorts': 259,
+                       'shovel': 260, 'sink': 261, 'skateboard': 262, 'skull': 263, 'skyscraper': 264,
+                       'sleeping_bag': 265, 'smiley_face': 266, 'snail': 267, 'snake': 268, 'snorkel': 269,
+                       'snowflake': 270, 'snowman': 271, 'soccer_ball': 272, 'sock': 273, 'speedboat': 274,
+                       'spider': 275, 'spoon': 276, 'spreadsheet': 277, 'square': 278, 'squiggle': 279, 'squirrel': 280,
+                       'stairs': 281, 'star': 282, 'steak': 283, 'stereo': 284, 'stethoscope': 285, 'stitches': 286,
+                       'stop_sign': 287, 'stove': 288, 'strawberry': 289, 'streetlight': 290, 'string_bean': 291,
+                       'submarine': 292, 'suitcase': 293, 'sun': 294, 'swan': 295, 'sweater': 296, 'swing_set': 297,
+                       'sword': 298, 't-shirt': 299, 'table': 300, 'teapot': 301, 'teddy-bear': 302, 'telephone': 303,
+                       'television': 304, 'tennis_racquet': 305, 'tent': 306, 'tiger': 307, 'toaster': 308, 'toe': 309,
+                       'toilet': 310, 'tooth': 311, 'toothbrush': 312, 'toothpaste': 313, 'tornado': 314,
+                       'tractor': 315, 'traffic_light': 316, 'train': 317, 'tree': 318, 'triangle': 319,
+                       'trombone': 320, 'truck': 321, 'trumpet': 322, 'umbrella': 323, 'underwear': 324, 'van': 325,
+                       'vase': 326, 'violin': 327, 'washing_machine': 328, 'watermelon': 329, 'waterslide': 330,
+                       'whale': 331, 'wheel': 332, 'windmill': 333, 'wine_bottle': 334, 'wine_glass': 335,
+                       'wristwatch': 336, 'yoga': 337, 'zebra': 338, 'zigzag': 339}
+        self.dec_dict = {0: 'The_Eiffel_Tower', 1: 'The_Great_Wall_of_China', 2: 'The_Mona_Lisa', 3: 'airplane',
+                     4: 'alarm_clock', 5: 'ambulance', 6: 'angel', 7: 'animal_migration', 8: 'ant', 9: 'anvil',
+                     10: 'apple', 11: 'arm', 12: 'asparagus', 13: 'axe', 14: 'backpack', 15: 'banana', 16: 'bandage',
+                     17: 'barn', 18: 'baseball_bat', 19: 'baseball', 20: 'basket', 21: 'basketball', 22: 'bat',
+                     23: 'bathtub', 24: 'beach', 25: 'bear', 26: 'beard', 27: 'bed', 28: 'bee', 29: 'belt', 30: 'bench',
+                     31: 'bicycle', 32: 'binoculars', 33: 'bird', 34: 'birthday_cake', 35: 'blackberry',
+                     36: 'blueberry', 37: 'book', 38: 'boomerang', 39: 'bottlecap', 40: 'bowtie', 41: 'bracelet',
+                     42: 'brain', 43: 'bread', 44: 'bridge', 45: 'broccoli', 46: 'broom', 47: 'bucket', 48: 'bulldozer',
+                     49: 'bus', 50: 'bush', 51: 'butterfly', 52: 'cactus', 53: 'cake', 54: 'calculator', 55: 'calendar',
+                     56: 'camel', 57: 'camera', 58: 'camouflage', 59: 'campfire', 60: 'candle', 61: 'cannon',
+                     62: 'canoe', 63: 'car', 64: 'carrot', 65: 'castle', 66: 'cat', 67: 'ceiling_fan', 68: 'cell_phone',
+                     69: 'cello', 70: 'chair', 71: 'chandelier', 72: 'church', 73: 'circle', 74: 'clarinet',
+                     75: 'clock', 76: 'cloud', 77: 'coffee_cup', 78: 'compass', 79: 'computer', 80: 'cookie',
+                     81: 'cooler', 82: 'couch', 83: 'cow', 84: 'crab', 85: 'crayon', 86: 'crocodile', 87: 'crown',
+                     88: 'cruise_ship', 89: 'cup', 90: 'diamond', 91: 'dishwasher', 92: 'diving_board', 93: 'dog',
+                     94: 'dolphin', 95: 'donut', 96: 'door', 97: 'dragon', 98: 'dresser', 99: 'drill', 100: 'drums',
+                     101: 'duck', 102: 'dumbbell', 103: 'ear', 104: 'elbow', 105: 'elephant', 106: 'envelope',
+                     107: 'eraser', 108: 'eye', 109: 'eyeglasses', 110: 'face', 111: 'fan', 112: 'feather',
+                     113: 'fence', 114: 'finger', 115: 'fire_hydrant', 116: 'fireplace', 117: 'firetruck', 118: 'fish',
+                     119: 'flamingo', 120: 'flashlight', 121: 'flip_flops', 122: 'floor_lamp', 123: 'flower',
+                     124: 'flying_saucer', 125: 'foot', 126: 'fork', 127: 'frog', 128: 'frying_pan', 129: 'garden_hose',
+                     130: 'garden', 131: 'giraffe', 132: 'goatee', 133: 'golf_club', 134: 'grapes', 135: 'grass',
+                     136: 'guitar', 137: 'hamburger', 138: 'hammer', 139: 'hand', 140: 'harp', 141: 'hat',
+                     142: 'headphones', 143: 'hedgehog', 144: 'helicopter', 145: 'helmet', 146: 'hexagon',
+                     147: 'hockey_puck', 148: 'hockey_stick', 149: 'horse', 150: 'hospital', 151: 'hot_air_balloon',
+                     152: 'hot_dog', 153: 'hot_tub', 154: 'hourglass', 155: 'house_plant', 156: 'house',
+                     157: 'hurricane', 158: 'ice_cream', 159: 'jacket', 160: 'jail', 161: 'kangaroo', 162: 'key',
+                     163: 'keyboard', 164: 'knee', 165: 'ladder', 166: 'lantern', 167: 'laptop', 168: 'leaf',
+                     169: 'leg', 170: 'light_bulb', 171: 'lighthouse', 172: 'lightning', 173: 'line', 174: 'lion',
+                     175: 'lipstick', 176: 'lobster', 177: 'lollipop', 178: 'mailbox', 179: 'map', 180: 'marker',
+                     181: 'matches', 182: 'megaphone', 183: 'mermaid', 184: 'microphone', 185: 'microwave',
+                     186: 'monkey', 187: 'moon', 188: 'mosquito', 189: 'motorbike', 190: 'mountain', 191: 'mouse',
+                     192: 'moustache', 193: 'mouth', 194: 'mug', 195: 'mushroom', 196: 'nail', 197: 'necklace',
+                     198: 'nose', 199: 'ocean', 200: 'octagon', 201: 'octopus', 202: 'onion', 203: 'oven', 204: 'owl',
+                     205: 'paint_can', 206: 'paintbrush', 207: 'palm_tree', 208: 'panda', 209: 'pants',
+                     210: 'paper_clip', 211: 'parachute', 212: 'parrot', 213: 'passport', 214: 'peanut', 215: 'pear',
+                     216: 'peas', 217: 'pencil', 218: 'penguin', 219: 'piano', 220: 'pickup_truck',
+                     221: 'picture_frame', 222: 'pig', 223: 'pillow', 224: 'pineapple', 225: 'pizza', 226: 'pliers',
+                     227: 'police_car', 228: 'pond', 229: 'pool', 230: 'popsicle', 231: 'postcard', 232: 'potato',
+                     233: 'power_outlet', 234: 'purse', 235: 'rabbit', 236: 'raccoon', 237: 'radio', 238: 'rain',
+                     239: 'rainbow', 240: 'rake', 241: 'remote_control', 242: 'rhinoceros', 243: 'river',
+                     244: 'roller_coaster', 245: 'rollerskates', 246: 'sailboat', 247: 'sandwich', 248: 'saw',
+                     249: 'saxophone', 250: 'school_bus', 251: 'scissors', 252: 'scorpion', 253: 'screwdriver',
+                     254: 'sea_turtle', 255: 'see_saw', 256: 'shark', 257: 'sheep', 258: 'shoe', 259: 'shorts',
+                     260: 'shovel', 261: 'sink', 262: 'skateboard', 263: 'skull', 264: 'skyscraper',
+                     265: 'sleeping_bag', 266: 'smiley_face', 267: 'snail', 268: 'snake', 269: 'snorkel',
+                     270: 'snowflake', 271: 'snowman', 272: 'soccer_ball', 273: 'sock', 274: 'speedboat', 275: 'spider',
+                     276: 'spoon', 277: 'spreadsheet', 278: 'square', 279: 'squiggle', 280: 'squirrel', 281: 'stairs',
+                     282: 'star', 283: 'steak', 284: 'stereo', 285: 'stethoscope', 286: 'stitches', 287: 'stop_sign',
+                     288: 'stove', 289: 'strawberry', 290: 'streetlight', 291: 'string_bean', 292: 'submarine',
+                     293: 'suitcase', 294: 'sun', 295: 'swan', 296: 'sweater', 297: 'swing_set', 298: 'sword',
+                     299: 't-shirt', 300: 'table', 301: 'teapot', 302: 'teddy-bear', 303: 'telephone',
+                     304: 'television', 305: 'tennis_racquet', 306: 'tent', 307: 'tiger', 308: 'toaster', 309: 'toe',
+                     310: 'toilet', 311: 'tooth', 312: 'toothbrush', 313: 'toothpaste', 314: 'tornado', 315: 'tractor',
+                     316: 'traffic_light', 317: 'train', 318: 'tree', 319: 'triangle', 320: 'trombone', 321: 'truck',
+                     322: 'trumpet', 323: 'umbrella', 324: 'underwear', 325: 'van', 326: 'vase', 327: 'violin',
+                     328: 'washing_machine', 329: 'watermelon', 330: 'waterslide', 331: 'whale', 332: 'wheel',
+                     333: 'windmill', 334: 'wine_bottle', 335: 'wine_glass', 336: 'wristwatch', 337: 'yoga',
+                     338: 'zebra', 339: 'zigzag'}
 
     def startGame(self):
         self.gaming = True
@@ -464,6 +678,7 @@ class MainWindow(QMainWindow):
             self.update_timer()
 
     def endGame(self, win):
+        print('label is {}'.format(self.label))
         if win:
             self.update_label('WIN, TIME LEFT: ')
             # self.update_label('WIN, TIME LEFT {}'.format(str(self.timeLeft)))

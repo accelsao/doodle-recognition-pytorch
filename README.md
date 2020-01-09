@@ -1,4 +1,22 @@
 # doodle-recognition-pytorch
+quick draw! 
+data is from Kaggle **Quick, Draw! Doodle Recognition Challenge**
 
-# 一直按 start 的話 時間會扣很快
-thread 需要收回
+## Code
+gui.py is the main file, use pretrained_weight to inference.
+
+doodle-recognition.py is for training,
+
+## run
+```commandline
+python gui.py
+```
+
+## screen gif
+![](dataset/doodle01.gif)
+![](dataset/doodle02.gif)
+![](dataset/doodle03.gif)
+
+
+
+
